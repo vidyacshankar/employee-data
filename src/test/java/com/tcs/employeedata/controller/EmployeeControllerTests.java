@@ -61,9 +61,7 @@ public class EmployeeControllerTests {
 	@DisplayName("junit to test getEmployeeById")
 	public void testGetEmployeebyId() throws Exception {
 		Employee employee = new Employee("Kate", "TCS", new Address("Bangalore", 560057));
-
-		Long employeeId = mapper.readValue(mockMvc
-				.perform(post("/employees/").contentType(MediaType.APPLICATION_JSON)
+		Long employeeId = mapper.readValue(mockMvc.perform(post("/employees/").contentType(MediaType.APPLICATION_JSON)
 						.content(mapper.writeValueAsString(employee)))
 				.andExpect(status().isCreated()).andReturn().getResponse().getContentAsString(), Employee.class)
 				.getId();
