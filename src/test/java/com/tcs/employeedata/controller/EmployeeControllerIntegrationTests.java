@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,7 +28,7 @@ import com.tcs.employeedata.repository.EmployeeRepository;
 @ExtendWith(MockitoExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @AutoConfigureMockMvc
-public class EmployeeControllerTests {
+public class EmployeeControllerIntegrationTests {
 
 	@Autowired
 	private MockMvc mockMvc;
@@ -37,17 +38,23 @@ public class EmployeeControllerTests {
 
 	@Autowired
 	private EmployeeRepository repository;
+	
+	private long employeeId;
+	private Employee employee;
+	
+	@BeforeEach
+	void init() throws Exception {
+		employee = new Employee("Kate", "TCS", new Address("Bangalore", 560057));
 
-	@Test
-	public void testCreateEmployee() throws Exception {
-		Employee employee = new Employee("Kate", "TCS", new Address("Bangalore", 560057));
-
-		Long employeeId = mapper.readValue(mockMvc
+		employeeId = mapper.readValue(mockMvc
 				.perform(post("/employees/").contentType(MediaType.APPLICATION_JSON)
 						.content(mapper.writeValueAsString(employee)))
 				.andExpect(status().isCreated()).andReturn().getResponse().getContentAsString(), Employee.class)
 				.getId();
+	}
 
+	@Test
+	public void testCreateEmployee() throws Exception {
 		assertThat(repository.findById(employeeId).get().getName(), equalTo("Kate"));
 	}
 
@@ -60,6 +67,16 @@ public class EmployeeControllerTests {
 	@Test
 	@DisplayName("junit to test getEmployeeById")
 	public void testGetEmployeebyId() throws Exception {
+	
+		Employee employee2 = mapper.readValue(mockMvc
+				.perform(get("/employees/" + employeeId).contentType(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk()).andReturn().getResponse().getContentAsString(), Employee.class);
+		assertEquals(employee.getName(), employee2.getName());
+	}
+	
+	@Test
+	@DisplayName("junit to test deleteEmployeeById")
+	public void testDeleteEmployeeById() throws Exception {
 		Employee employee = new Employee("Kate", "TCS", new Address("Bangalore", 560057));
 		Long employeeId = mapper.readValue(mockMvc.perform(post("/employees/").contentType(MediaType.APPLICATION_JSON)
 						.content(mapper.writeValueAsString(employee)))
